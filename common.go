@@ -1,6 +1,43 @@
 package jikan
 
-import "time"
+import (
+	"strings"
+	"time"
+)
+
+type JikanTime struct {
+	time.Time
+}
+
+// UnmarshalJSON handles full RFC3339, YYYY-MM-DD, YYYY-MM, and YYYY string formats.
+func (j *JikanTime) UnmarshalJSON(b []byte) error {
+	s := strings.Trim(string(b), "\"")
+	if s == "" || s == "null" {
+		j.Time = time.Time{}
+		return nil
+	}
+
+	layouts := []string{
+		time.RFC3339,
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02T15:04:05-07:00",
+		"2006-01-02",
+		"2006-01",
+		"2006",
+	}
+
+	var parseErr error
+	for _, layout := range layouts {
+		t, err := time.Parse(layout, s)
+		if err == nil {
+			j.Time = t
+			return nil
+		}
+		parseErr = err
+	}
+
+	return parseErr
+}
 
 // Pagination struct
 type Pagination struct {
@@ -33,8 +70,8 @@ type UserItem struct {
 
 // DateRange struct
 type DateRange struct {
-	From time.Time `json:"from"`
-	To   time.Time `json:"to"`
+	From JikanTime `json:"from"`
+	To   JikanTime `json:"to"`
 	Prop struct {
 		From struct {
 			Day   int `json:"day"`
@@ -91,7 +128,7 @@ type Comment struct {
 	Url            string    `json:"url"`
 	AuthorUsername string    `json:"author_username"`
 	AuthorUrl      string    `json:"author_url"`
-	Date           time.Time `json:"date"`
+	Date           JikanTime `json:"date"`
 }
 
 // ScoresShort struct
