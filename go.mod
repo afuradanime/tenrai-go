@@ -1,3 +1,3 @@
-module github.com/darenliang/jikan-go
+module github.com/afuradanime/tenrai-go
 
 go 1.14
